@@ -207,6 +207,11 @@
 </div>
 
 <script>
+    // set background color to white if 'Kindle' is in user agent
+    if (navigator.userAgent.indexOf('Kindle') > -1) {
+        document.body.style.backgroundColor = 'white';
+    }
+
     // Hidden stories are stored in localStorage
     const hiddenStories = new Set(JSON.parse(localStorage.getItem('hiddenStories')) || []);
 
