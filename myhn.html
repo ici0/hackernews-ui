@@ -200,7 +200,7 @@
     <div id="toggle">
         <label for="storyType">Top Stories</label>
         <label class="switch">
-            <input type="checkbox" id="storyType">
+            <input type="checkbox" id="storyType" checked>
             <span class="slider"></span>
         </label>
         <label for="storyType">Best Stories</label>
@@ -231,7 +231,7 @@
             if (filters) {
                 document.getElementById('maxAge').value = filters.maxAge || 7;
                 document.getElementById('minScore').value = filters.minScore || 25;
-                document.getElementById('storyType').checked = filters.storyType || false;
+                document.getElementById('storyType').checked = filters.storyType !== undefined ? filters.storyType : true;
             }
         } catch (error) {
             console.error('Error loading filters:', error);
