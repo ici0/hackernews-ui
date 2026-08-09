@@ -213,8 +213,34 @@
         document.body.style.backgroundColor = 'white';
     }
 
+    // Optional endpoint to sync hidden story IDs across devices (see hidden_sync.py).
+    // Empty string disables sync; the page then relies on localStorage only.
+    const SYNC_ENDPOINT = 'http://31.184.246.101/hn-397d5c504003963d';
+
     // Hidden stories are stored in localStorage
     const hiddenStories = new Set(JSON.parse(localStorage.getItem('hiddenStories')) || []);
+
+    async function syncHiddenFromServer() {
+        if (!SYNC_ENDPOINT) return;
+        try {
+            const response = await fetch(SYNC_ENDPOINT);
+            if (!response.ok) return;
+            const ids = await response.json();
+            ids.forEach(id => hiddenStories.add(id));
+            localStorage.setItem('hiddenStories', JSON.stringify([...hiddenStories]));
+        } catch (error) {
+            // Endpoint is optional; ignore failures
+        }
+    }
+
+    function postHiddenToServer(id) {
+        if (!SYNC_ENDPOINT) return;
+        fetch(SYNC_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([id])
+        }).catch(() => {});
+    }
 
     // Function to save filter values to localStorage
     function saveFilters() {
@@ -301,7 +327,8 @@
 
             saveFilters(); // Save filters whenever stories are loaded
 
-            const storyIds = await fetchStoryIds();
+            // Sync hidden IDs in parallel with the story ID fetch — no extra round-trip
+            const [storyIds] = await Promise.all([fetchStoryIds(), syncHiddenFromServer()]);
             if (storyIds.length === 0) {
                 newsDiv.innerHTML = '<p>Unable to load stories. Please check your connection and try again.</p>';
                 return;
@@ -376,6 +403,7 @@
             hideBtn.onclick = () => {
                 hiddenStories.add(story.id);
                 localStorage.setItem('hiddenStories', JSON.stringify([...hiddenStories]));
+                postHiddenToServer(story.id);
                 storyDiv.style.display = 'none';
             };
 

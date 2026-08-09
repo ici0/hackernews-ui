@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hidden-sync
+  labels:
+    app: hidden-sync
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hidden-sync
+  template:
+    metadata:
+      labels:
+        app: hidden-sync
+    spec:
+      containers:
+        - name: hidden-sync
+          image: python:3.12-alpine
+          command:
+            - python
+            - /app/hidden_sync.py
+            - --port=8017
+            - --db=/data/hidden_ids.json
+            - --path=__SECRET_PATH__
+          ports:
+            - containerPort: 8017
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            - name: script
+              mountPath: /app
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: script
+          configMap:
+            name: hidden-sync-script
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hidden-sync
+  labels:
+    app: hidden-sync
+spec:
+  type: LoadBalancer
+  selector:
+    app: hidden-sync
+  ports:
+    - port: 80
+      targetPort: 8017
