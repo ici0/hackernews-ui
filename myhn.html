@@ -215,7 +215,7 @@
 
     // Optional endpoint to sync hidden story IDs across devices (see hidden_sync.py).
     // Empty string disables sync; the page then relies on localStorage only.
-    const SYNC_ENDPOINT = 'http://31.184.246.101/hn-397d5c504003963d';
+    const SYNC_ENDPOINT = 'https://31.184.246.101.sslip.io/hn-397d5c504003963d';
 
     // Hidden stories are stored in localStorage
     const hiddenStories = new Set(JSON.parse(localStorage.getItem('hiddenStories')) || []);

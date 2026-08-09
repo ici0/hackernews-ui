@@ -23,8 +23,6 @@ spec:
             - --port=8017
             - --db=/data/hidden_ids.json
             - --path=__SECRET_PATH__
-          ports:
-            - containerPort: 8017
           resources:
             requests:
               cpu: 50m
@@ -36,11 +34,34 @@ spec:
               mountPath: /app
             - name: data
               mountPath: /data
+        # TLS termination with automatic Let's Encrypt cert (page is served
+        # over HTTPS, so the endpoint must be HTTPS too - mixed content)
+        - name: tls
+          image: caddy:2-alpine
+          command:
+            - caddy
+            - reverse-proxy
+            - --from=https://__SYNC_HOST__
+            - --to=localhost:8017
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          volumeMounts:
+            - name: caddy-data
+              mountPath: /data
       volumes:
         - name: script
           configMap:
             name: hidden-sync-script
         - name: data
+          emptyDir: {}
+        - name: caddy-data
           emptyDir: {}
 ---
 apiVersion: v1
@@ -54,5 +75,9 @@ spec:
   selector:
     app: hidden-sync
   ports:
-    - port: 80
-      targetPort: 8017
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
