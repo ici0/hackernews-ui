@@ -223,7 +223,7 @@
     async function syncHiddenFromServer() {
         if (!SYNC_ENDPOINT) return;
         try {
-            const response = await fetch(SYNC_ENDPOINT);
+            const response = await fetch(SYNC_ENDPOINT, { signal: AbortSignal.timeout(1500) });
             if (!response.ok) return;
             const ids = await response.json();
             ids.forEach(id => hiddenStories.add(id));
