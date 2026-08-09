@@ -307,16 +307,20 @@
                 return;
             }
             
-            const storyPromises = storyIds.map(id => fetchStory(id));
-            const stories = await Promise.all(storyPromises);
+            const passesFilters = story => {
+                if (!story || hiddenStories.has(story.id)) return false;
+                const ageInDays = (Date.now() / 1000 - story.time) / (3600 * 24);
+                return (maxAgeDays === 0 || ageInDays <= maxAgeDays) &&
+                       story.score >= minScore;
+            };
 
-        let visibleStories = stories.filter(
-            story => story && !hiddenStories.has(story.id)
-        ).filter(story => {
-            const ageInDays = (Date.now() / 1000 - story.time) / (3600 * 24);
-            return (maxAgeDays === 0 || ageInDays <= maxAgeDays) &&
-                   story.score >= minScore;
-        });
+        // Fetch in small batches and stop once we have enough visible stories
+        const BATCH_SIZE = 20;
+        let visibleStories = [];
+        for (let i = 0; i < storyIds.length && visibleStories.length < 10; i += BATCH_SIZE) {
+            const batch = await Promise.all(storyIds.slice(i, i + BATCH_SIZE).map(fetchStory));
+            visibleStories.push(...batch.filter(passesFilters));
+        }
 
         visibleStories = visibleStories.slice(0, 10);
 
