@@ -88,6 +88,8 @@
             color: #777;
             text-decoration: none;
             overflow-wrap: anywhere;
+            text-align: right;
+            margin-left: auto;
             font-size: 1em; /* Increased font size */
         }
         #last-refresh {
@@ -401,7 +403,7 @@
             const sourceSpan = document.createElement('a');
             if (story.url) {
                 const hostname = extractHostname(story.url);
-                sourceSpan.textContent = `(${hostname})`;
+                sourceSpan.textContent = hostname;
                 sourceSpan.href = story.url;
                 sourceSpan.target = '_blank';
                 sourceSpan.className = 'source-link';
